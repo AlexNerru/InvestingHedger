@@ -11,6 +11,11 @@ django-guardian = "*"
 django-oauth-toolkit = "*"
 django-cors-middleware = "*"
 oauth2-provider = "*"
+yahoo-fin = "*"
+pandas = "*"
+ftplib = "*"
+requests-html = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 

@@ -44,10 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'issuers',
     'portfolios',
     'users',
-    'securities',
 
     'guardian'
 ]
@@ -69,7 +67,7 @@ ROOT_URLCONF = 'InvestingHedger.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -103,8 +101,10 @@ OAUTH2_PROVIDER = {
     'SCOPES': {'read': 'Read scope',
                'write': 'Write scope',
                'groups': 'Access to your groups',
-               'stores': 'Access to stores'}
+               'stores': 'Access to stores'},
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 604800
 }
+
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -189,9 +189,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
+STATICFILES_DIRS = ( os.path.join('staticfiles'), )
 
 STATIC_URL = '/staticfiles/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = ''
 
 MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')

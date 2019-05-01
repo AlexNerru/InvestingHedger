@@ -1,45 +1,44 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib.auth.models import User
-from users.models import Profile
+from django.views import View
+from guardian.mixins import PermissionRequiredMixin
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+from users.forms import LoginForm
+from django.contrib.auth import authenticate, logout, login
 
 import logging
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
-
-from users.serializers import RegisterSerializer, UserSerializer
+from portfolios.models import Portfolio, Security, Balance
 
 logger = logging.getLogger('django')
 request_logger = logging.getLogger('django.request')
 
-class UserRegister(APIView):
-    permission_classes = (permissions.AllowAny,)
+class MainView(View):
+    template_name = 'index.html'
+
+    def get(self, request):
+        form = LoginForm()
+        return render(request, self.template_name, {'form':form})
+
+class LoginView(View):
 
     def post(self, request):
-        request_logger.debug(request.data)
-        logger.debug(request)
-        if request.auth is None:
-            serializer = RegisterSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                user = User.objects.get(
-                    email = serializer.validated_data.get('email'))
-                user.profile.save()
-                serialized_user = UserSerializer(user)
-                return Response(serialized_user.data,  status = status.HTTP_200_OK)
-            return Response(data=serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+        request_logger.debug(request)
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(username = form.data['username'], password = form.data['password'])
+            if user is not None:
+                login(request, user)
+                return render(request, 'portfolio.html', {'user':user})
+            else:
+                return render(request, 'index.html')
 
-class UserDetails(APIView):
+class LogoutView(View):
 
-    def get(self, request, pk):
-        request_logger.debug(request.data)
-        logger.debug(request)
-        user = Profile.objects.filter(pub_key = pk).first()
-        if user is not None:
-            serializer = UserSerializer(user.user)
-            user_dict = serializer.data
-            return Response(user_dict, status=status.HTTP_200_OK)
-        return Response("No such user", status=status.HTTP_404_NOT_FOUND)
+    def get(self, request):
+        request_logger.debug(request)
+        logout(request)
+        form = LoginForm()
+        return render(request, 'index.html', {'form': form})
+

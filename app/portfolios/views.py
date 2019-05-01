@@ -1,30 +1,39 @@
-from django.contrib.auth.models import User
-from portfolios.serializers import PortfolioSerializer
-from guardian.shortcuts import assign_perm
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.views import View
 from guardian.mixins import PermissionRequiredMixin
-
-from rest_framework import status, permissions
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
 
 import logging
 
-from portfolios.serializers import PortfolioSerializer
+from portfolios.models import Portfolio, Security, Balance
 
 logger = logging.getLogger('django')
 request_logger = logging.getLogger('django.request')
 
-class PortfolioList(APIView):
+class PortfolioView(View):
+    template_name = 'form_template.html'
 
-    def post(self, request):
-        request_logger.debug(request.data)
-        logger.debug(request)
-        serializer = PortfolioSerializer(data=request.data)
-        if serializer.is_valid():
-            user = request.user
-            if user is not None:
-                portfolio = serializer.save(user = user)
-                assign_perm('crud portfolio', user, portfolio)
-                return Response(serializer.data,  status = status.HTTP_200_OK)
-        return Response(data=serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, pk):
+        request_logger.debug(request)
+        portfolio = get_object_or_404(Portfolio, pk=pk)
+        if request.user.has_perm('crud portfolio', portfolio):
+            return render(request, self.template_name)
+        else:
+            raise PermissionDenied
+
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # <process form cleaned data>
+            return HttpResponseRedirect('/success/')
+
+        return render(request, self.template_name, {'form': form})
+
+class Portfolios(View):
+
+    def get(self, request):
+        request_logger.debug(request)
+        user = request.user
