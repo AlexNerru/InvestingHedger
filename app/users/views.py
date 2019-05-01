@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from guardian.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
@@ -30,9 +30,10 @@ class LoginView(View):
             user = authenticate(username = form.data['username'], password = form.data['password'])
             if user is not None:
                 login(request, user)
-                return render(request, 'portfolio.html', {'user':user})
+                return redirect('/portfolios/')
             else:
-                return render(request, 'index.html')
+                form = LoginForm()
+                return render(request, 'index.html', {'form': form})
 
 class LogoutView(View):
 
@@ -40,5 +41,5 @@ class LogoutView(View):
         request_logger.debug(request)
         logout(request)
         form = LoginForm()
-        return render(request, 'index.html', {'form': form})
+        return redirect('/', {'form': form})
 

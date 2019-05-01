@@ -59,6 +59,10 @@ class Portfolio(models.Model):
             initial_price += balance.buy_price * balance.amount
         return profit/initial_price - 1
 
+    @property
+    def href(self):
+        return "/porfolios/" + str(self.id)
+
 
 class Balance(models.Model):
     security = models.ForeignKey(Security, on_delete=models.CASCADE)

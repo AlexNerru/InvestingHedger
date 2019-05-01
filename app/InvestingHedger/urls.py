@@ -8,6 +8,7 @@ from users.api import UserDetails, UserRegister
 from portfolios.api import PortfolioList, PortfolioDetails
 
 from users.views import MainView, LoginView, LogoutView
+from portfolios.views import Portfolios
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,6 +16,8 @@ urlpatterns = [
     path('', MainView.as_view()),
     path('login/', LoginView.as_view()),
     path('logout/', LogoutView.as_view()),
+    path('portfolios/', Portfolios.as_view()),
+
 
     url(r'^api/v1/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('api/v1/register/', UserRegister.as_view()),
