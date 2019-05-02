@@ -6,21 +6,27 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
 import logging
+from datetime import date
 
 from portfolios.models import Portfolio, Security, Balance
+from portfolios.graphs import GraphCreator
 
 logger = logging.getLogger('django')
 request_logger = logging.getLogger('django.request')
 
 
 class PortfolioView(View):
-    template_name = 'form_template.html'
 
     def get(self, request, pk):
         request_logger.debug(request)
         portfolio = get_object_or_404(Portfolio, pk=pk)
         if request.user.has_perm('crud portfolio', portfolio):
-            return render(request, self.template_name)
+            data = portfolio.get_prices_one_date(portfolio.creation_date)
+            volatile = portfolio.get_portfolio_returns(data)
+            creator = GraphCreator()
+            div = creator.get_price_chart(data)
+            returns_div = creator.get_change_chart(volatile)
+            return render(request, 'portfolio.html', {'graph': div, 'change':returns_div})
         else:
             raise PermissionDenied
 
@@ -61,4 +67,4 @@ class Portfolios(View):
                         portfolio_list[row].append(portfolio)
                         counter += 1
 
-                return render(request, 'portfolio.html', {'portfolios': portfolios, 'list': portfolio_list})
+                return render(request, 'portfolios_list.html', {'portfolios': portfolios, 'list': portfolio_list})

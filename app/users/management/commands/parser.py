@@ -19,5 +19,4 @@ class FinancialParser():
                 price = Price(date=date, low=row['low'], high=row['high'], open = row['open'], close = row[
                     'close'], security=security)
                 price.save()
-        #
 
