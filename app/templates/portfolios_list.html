@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="colorlib-blog">
+        <div class="container">
+            {% for row in list|slice:"0:1" %}
+                <div class="row">
+                    <div class="col-md-4 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a href="/portfolios/add">
+                                                <span class="icon">
+								                    <i class="icon-plus"></i>
+                                                </span>
+                                    <p>Click here to create</p>
+                                </a>
+                            </article>
+                        </div>
+                    </div>
+                    {% for portfolio in row %}
+                        <div class="col-md-4 text-center animate-box">
+                            <div class="services">
+                                <article>
+                                    <a href={{ portfolio.href }}>
+
+                                    <span class="icon">
+								<i class="icon-coin-dollar"></i>
+                        </span>
+                                        <h2>{{ portfolio.name }}</h2>
+                                        {% if portfolio.not_empty %}
+                                            <h3>{{ portfolio.get_profit_percent }}%</h3>
+                                        {% endif %}
+                                    </a>
+                                </article>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            {% for row in list|slice:"1:" %}
+                <div class="row">
+                    {% for portfolio in row %}
+                        <div class="col-md-4 text-center animate-box">
+                            <div class="services">
+                                <article>
+                                    <a href={{ portfolio.href }}>
+
+                                    <span class="icon">
+								<i class="icon-coin-dollar"></i>
+                        </span>
+                                        <h2>{{ portfolio.name }}</h2>
+                                        {% if portfolio.not_empty %}
+                                            <h3>{{ portfolio.get_profit_percent }}%</h3>
+                                        {% endif %}
+                                    </a>
+                                </article>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

@@ -17,6 +17,8 @@ ftplib = "*"
 requests-html = "*"
 sqlalchemy = "*"
 plotly = "*"
+scipy = "*"
+quandl = "*"
 
 [dev-packages]
 

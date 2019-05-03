@@ -21,12 +21,28 @@ class PortfolioView(View):
         request_logger.debug(request)
         portfolio = get_object_or_404(Portfolio, pk=pk)
         if request.user.has_perm('crud portfolio', portfolio):
-            data = portfolio.get_prices_one_date(portfolio.creation_date)
-            volatile = portfolio.get_portfolio_returns(data)
             creator = GraphCreator()
+
+            data = portfolio.get_prices()
             div = creator.get_price_chart(data)
+
+            volatile = portfolio.get_portfolio_returns(data)
             returns_div = creator.get_change_chart(volatile)
-            return render(request, 'portfolio.html', {'graph': div, 'change':returns_div})
+
+            stocks_data = portfolio.get_stocks_data()
+            stocks_div = creator.get_stocks_graph(stocks_data)
+
+            beta = portfolio.get_beta(volatile)
+            sharpe = portfolio.get_sharp(volatile)
+
+            stocks_volatile = portfolio.get_stocks_returns(stocks_data)
+            stocks_volatile_div = creator.get_stocks_change_graph(stocks_volatile)
+
+            return render(request, 'portfolio.html',
+                          {'graph': div, 'change':returns_div,
+                           'portfolio': portfolio, 'beta':beta,
+                           'sharpe': sharpe, 'stocks': stocks_div,
+                           'stock_change': stocks_volatile_div})
         else:
             raise PermissionDenied
 
