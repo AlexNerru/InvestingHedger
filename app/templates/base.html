@@ -42,8 +42,26 @@
 	<script src="js/respond.min.js"></script>
 	<![endif]-->
 
+
 </head>
 <body>
+<style>
+    [data-role="dynamic-fields"] > .form-inline + .form-inline {
+    }
+
+    [data-role="dynamic-fields"] > .form-inline [data-role="add"] {
+        display: none;
+
+    }
+
+    [data-role="dynamic-fields"] > .form-inline:last-child [data-role="add"] {
+        display: inline-block;
+    }
+
+    [data-role="dynamic-fields"] > .form-inline:last-child [data-role="remove"] {
+        display: none;
+    }
+</style>
 
 <div class="colorlib-loader"></div>
 
@@ -58,8 +76,8 @@
                     <div class="col-md-10 text-right menu-1">
                         <ul>
                             <li class="active"><a href="/">Home</a></li>
-                            {%  if user.is_authenticated %}
-                            <li><a href="/portfolios/">Portfolios</a></li>
+                            {% if user.is_authenticated %}
+                                <li><a href="/portfolios/">Portfolios</a></li>
                             {% endif %}
                             <li><a href="about.html">About</a></li>
                             <li><a href="contact.html">Contact</a></li>
@@ -120,31 +138,10 @@
 </div>
 
 
+
+
 <div class="gototop js-top">
     <a href="#" class="js-gotop"><i class="icon-arrow-up2"></i></a>
-</div>
-
-<div id="id01" class="modal">
-    <form class="modal-content animate" action="/login/" method="post">
-        <div class="container">
-
-            {% csrf_token %}
-
-            {{ form }}
-
-            <button type="submit">Login</button>
-            <label>
-                <input type="checkbox" checked="checked" name="remember"> Remember me
-            </label>
-        </div>
-
-        <div class="container" style="background-color:#f1f1f1">
-            <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">
-                Cancel
-            </button>
-            <span class="psw">Forgot <a href="#">password?</a></span>
-        </div>
-    </form>
 </div>
 
 
@@ -173,16 +170,44 @@
 </body>
 
 <script>
-    // Get the modal
-    var modal = document.getElementById('id01');
+        $(function () {
+            // Remove button click
+            $(document).on(
+                'click',
+                '[data-role="dynamic-fields"] > .form-inline [data-role="remove"]',
+                function (e) {
+                    e.preventDefault();
+                    $(this).closest('.form-inline').remove();
+                }
+            );
+            // Add button click
+            $(document).on(
+                'click',
+                '[data-role="dynamic-fields"] > .form-inline [data-role="add"]',
+                function (e) {
+                    e.preventDefault();
+                    var container = $(this).closest('[data-role="dynamic-fields"]');
+                    new_field_group = container.children().filter('.form-inline:first-child').clone();
+                    new_field_group.find('input').each(function () {
+                        $(this).val('');
+                    });
+                    container.append(new_field_group);
+                }
+            );
+        });
+    </script>
 
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function (event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
+    <script>
+        // Get the modal
+        var modal2 = document.getElementById('id02');
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target === modal2) {
+                modal.style.display = "none";
+            }
         }
-    }
-</script>
+    </script>
 
 </html>
 

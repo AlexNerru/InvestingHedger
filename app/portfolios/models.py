@@ -14,6 +14,9 @@ import quandl
 
 quandl.ApiConfig.api_key = 'PZ9S3Kpy4Hvuy9t2cxqo'
 
+class Sector(models.Model):
+    name = models.CharField(unique=True, max_length=100)
+
 
 class Security(models.Model):
     tiker = models.CharField(unique=True, max_length=10)
@@ -49,6 +52,11 @@ class Security(models.Model):
         returns = []
         prices = self.price_set.filter(date > date_start).all()
 
+    @classmethod
+    def get_all_tikers(cls):
+        return [security.tiker for security in Security.objects.all()]
+
+
 
 class Price(models.Model):
     security = models.ForeignKey(Security, on_delete=models.CASCADE)
@@ -78,20 +86,6 @@ class Portfolio(models.Model):
             ('crud portfolio', 'CRUD portfolio'),
         )
 
-    def __create_portfolio_prices(self):
-        date_counter = self.creation_date
-        latest_date = self.get_latest_common_price_date()
-
-        while date_counter <= latest_date:
-            price = 0
-            for balance in self.balance_set.all():
-                close_price = balance.security.price_set.filter(date=date_counter).first()
-                if close_price is not None:
-                    price += close_price.close * balance.amount
-            if price != 0:
-                price = PortfolioPrice(date=date_counter, price=price, portfolio=self)
-                price.save()
-            date_counter += timedelta(days=1)
 
     def get_profit_cu(self):
         amount = 0
@@ -123,6 +117,10 @@ class Portfolio(models.Model):
     @property
     def href(self):
         return "/portfolios/" + str(self.id)
+
+    @property
+    def delete_href(self):
+        return "/portfolios/" + str(self.id) + "/delete/"
 
     def get_shares_buy(self, bal):
         total_price = 0
@@ -234,8 +232,6 @@ class Balance(models.Model):
     security = models.ForeignKey(Security, on_delete=models.CASCADE)
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE)
     amount = models.DecimalField(decimal_places=5, max_digits=20)
-    buy_date = models.DateField(auto_now_add=True)
-    buy_price = models.DecimalField(decimal_places=5, max_digits=20)
 
 
 class PortfolioPrice(models.Model):

@@ -82,8 +82,24 @@
             font-weight: 500
         }
     </style>
+
     <div class="colorlib-blog">
         <div class="container">
+            <div class="row">
+                <div class="col-md-12 animate-box">
+                    <article>
+                        <div class="text-right top-right">
+                            <i class="icon-pencil" style="margin-right: 2%"></i>
+                            <a href="{{ portfolio.delete_href }}">
+                            <i class="icon-cross"
+                               style="color: red;%"></i>
+                                </a>
+                        </div>
+                        <a>
+                            <h3>{{ portfolio.name }}</h3>
+                        </a>
+                    </article>
+                </div>
             <div class="row">
                 <div class="col-md-4 text-center animate-box">
                     <div class="services">
