@@ -1,18 +1,18 @@
 from django.db import models
 from users.models import Profile
 from datetime import datetime, timedelta, date
-from django.core.exceptions import ValidationError
 import pandas as pd
 import numpy as np
 from scipy import stats
 from sqlalchemy import create_engine
 from scipy.stats.mstats import zscore
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+import cvxopt as opt
+from cvxopt import blas, solvers
 
 import quandl
 
 quandl.ApiConfig.api_key = 'PZ9S3Kpy4Hvuy9t2cxqo'
+
 
 class Sector(models.Model):
     name = models.CharField(unique=True, max_length=100)
@@ -57,7 +57,6 @@ class Security(models.Model):
         return [security.tiker for security in Security.objects.all()]
 
 
-
 class Price(models.Model):
     security = models.ForeignKey(Security, on_delete=models.CASCADE)
     date = models.DateField()
@@ -77,15 +76,10 @@ class Portfolio(models.Model):
         through_fields=('portfolio', 'security'),
     )
 
-    # def safe(self, *args, **kwargs):
-    #    self.__create_portfolio_prices()
-    #    super(Portfolio, self).save(*args, **kwargs)
-
     class Meta:
         permissions = (
             ('crud portfolio', 'CRUD portfolio'),
         )
-
 
     def get_profit_cu(self):
         amount = 0
@@ -122,11 +116,36 @@ class Portfolio(models.Model):
     def delete_href(self):
         return "/portfolios/" + str(self.id) + "/delete/"
 
-    def get_shares_buy(self, bal):
-        total_price = 0
+    def get_shares(self):
+        initial_price = 0
+        prices = {}
         for balance in self.balance_set.all():
-            total_price += balance.amount * balance.buy_price
-        return (bal.amount * bal.buy_price) / total_price
+            price = balance.security.price_set.filter(date=self.creation_date).first()
+            if price is not None:
+                initial_price += price.close * balance.amount
+                prices[balance.security.tiker] = price.close * balance.amount
+            else:
+                date = self.creation_date
+                while price is None:
+                    date -= timedelta(days=1)
+                    price = balance.security.price_set.filter(date=date).first()
+                price[balance.security.tiker] = price.close * balance.amount
+        for key, value in prices.items():
+            prices[key] = value/ initial_price
+        shares_string = ''
+        for key, value in prices.items():
+            shares_string += key + " " + "{0:.2f}".format(value) + "\n"
+        return shares_string
+
+    def get_alt_shares_string(self, weights, prices):
+        weights = weights.tolist()
+        for column in prices.columns:
+            if "change" in column:
+                prices = prices.drop(columns=[column])
+        result_string = ""
+        for column, weight in list(zip(prices.columns, weights)):
+            result_string += column + " " + "{0:.2f}".format(weight[0]) + "\n"
+        return result_string
 
     def get_prices(self):
         security_ids = ",".join([str(balance.security_id) for balance in self.balance_set.all()])
@@ -145,7 +164,20 @@ class Portfolio(models.Model):
         data = data.groupby(by='date').sum()
         return data
 
-    # TODO: refactor to different buy dates
+    def get_alt_prices(self, prices, weights, money):
+        weights = weights.tolist()
+        for column in prices.columns:
+            if "change" in column:
+                prices = prices.drop(columns=[column])
+        data = []
+        amounts = [(weights[i][0] * money) / prices.iloc[0][i] for i in range(len(weights))]
+        for index, row in prices.iterrows():
+            result = 0
+            for i in range(len(row)):
+                result += row[i] * amounts[i]
+            data.append(result)
+        return data
+
     def get_prices_one_date(self):
         d = {'date': [], 'price': []}
         date_counter = self.creation_date
@@ -186,8 +218,8 @@ class Portfolio(models.Model):
 
     def get_stocks_returns(self, prices):
         for column in prices:
-            prices[column+'_change'] = prices[column].pct_change().fillna(0)
-            prices = prices.drop(column, axis=1 )
+            prices[column + '_change'] = prices[column].pct_change().fillna(0)
+            prices = prices.drop(column, axis=1)
         return prices
 
     def get_beta(self, prices):
@@ -226,6 +258,64 @@ class Portfolio(models.Model):
             data = pd.read_sql_query(formatted, con=engine, index_col='date')
             df[balance.security.tiker] = data.close
         return df
+
+    def get_efficient_frontier(self, changes):
+        returns = changes.to_numpy().T
+        returns = np.asmatrix(returns)
+        n = len(returns)
+
+        N = 100
+        mus = [10 ** (5.0 * t / N - 1.0) for t in range(N)]
+
+        # Convert to cvxopt matrices
+        S = opt.matrix(np.cov(returns))
+        pbar = opt.matrix(np.mean(returns, axis=1))
+
+        # Create constraint matrices
+        G = -opt.matrix(np.eye(n))  # negative n x n identity matrix
+        h = opt.matrix(0.0, (n, 1))
+        A = opt.matrix(1.0, (1, n))
+        b = opt.matrix(1.0)
+
+        # Calculate efficient frontier weights using quadratic programming
+        portfolios = [solvers.qp(mu * S, -pbar, G, h, A, b)['x']
+                      for mu in mus]
+        ## CALCULATE RISKS AND RETURNS FOR FRONTIER
+        returns = [blas.dot(pbar, x) for x in portfolios]
+        risks = [np.sqrt(blas.dot(x, S * x)) for x in portfolios]
+        ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
+        m1 = np.polyfit(returns, risks, 2)
+        x1 = np.sqrt(m1[2] / m1[0])
+        # CALCULATE THE OPTIMAL PORTFOLIO
+        wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+        return np.asarray(wt), returns, risks
+
+    def rand_weights(self, n):
+        ''' Produces n random weights that sum to 1 '''
+        k = np.random.rand(n)
+        return k / sum(k)
+
+    def random_portfolio(self, returns):
+        p = np.asmatrix(np.mean(returns, axis=1))
+        w = np.asmatrix(self.rand_weights(returns.shape[0]))
+        C = np.asmatrix(np.cov(returns))
+
+        mu = w * p.T
+        sigma = np.sqrt(w * C * w.T)
+
+
+        # This recursion reduces outliers to keep plots pretty
+        if sigma > 2:
+            return self.random_portfolio(returns)
+        return mu, sigma - 1
+
+    def get_random_portfolios(self, return_vec):
+        n_portfolios = 500
+        means, stds = np.column_stack([
+            self.random_portfolio(return_vec)
+            for _ in range(n_portfolios)
+        ])
+        return means, stds
 
 
 class Balance(models.Model):

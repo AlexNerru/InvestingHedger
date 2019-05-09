@@ -48,7 +48,6 @@ class PortfolioView(View):
             creator = GraphCreator()
 
             data = portfolio.get_prices()
-            div = creator.get_price_chart(data)
 
             volatile = portfolio.get_portfolio_returns(data)
             returns_div = creator.get_change_chart(volatile)
@@ -62,11 +61,29 @@ class PortfolioView(View):
             stocks_volatile = portfolio.get_stocks_returns(stocks_data)
             stocks_volatile_div = creator.get_stocks_change_graph(stocks_volatile)
 
+            stocks_volatile*=100
+
+            weights, returns, risks = portfolio.get_efficient_frontier(stocks_volatile)
+
+            alt_price = portfolio.get_alt_prices(stocks_data, weights, data['price'].iloc[0])
+            div = creator.get_price_chart(data, alt_price)
+
+            returns_trans = stocks_volatile.to_numpy().T
+            means, stds = portfolio.get_random_portfolios(returns_trans)
+
+            frontier = creator.get_frontier_graph(stds, means, risks, returns)
+
+            weights_string = portfolio.get_shares()
+            alt_weights_string = portfolio.get_alt_shares_string(weights, stocks_data)
+
             return render(request, 'portfolio.html',
                           {'graph': div, 'change': returns_div,
                            'portfolio': portfolio, 'beta': beta,
                            'sharpe': sharpe, 'stocks': stocks_div,
-                           'stock_change': stocks_volatile_div})
+                           'stock_change': stocks_volatile_div,
+                           'frontier': frontier,
+                           'weights': weights_string,
+                           'alt_weights':alt_weights_string})
         else:
             raise PermissionDenied
 

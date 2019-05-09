@@ -19,6 +19,7 @@ sqlalchemy = "*"
 plotly = "*"
 scipy = "*"
 quandl = "*"
+cvxopt = "*"
 
 [dev-packages]
 

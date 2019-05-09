@@ -1,5 +1,5 @@
 from yahoo_fin.stock_info import *
-from portfolios.models import Security, Price
+from portfolios.models import Security, Price, Sector
 from sqlalchemy import create_engine
 from datetime import datetime
 
@@ -7,9 +7,10 @@ class FinancialParser():
 
     @classmethod
     def parseSecurities(self, tiker):
+        print(tiker)
         security = Security.objects.filter(tiker = tiker).first()
         if security is None:
-            data = get_data(tiker)
+            data = get_data(tiker, start_date=datetime(2000,1,1))
             engine = create_engine('sqlite:///db.sqlite3', echo=False)
             data.to_sql('stocks_data', con=engine, if_exists='append')
             security = Security(tiker=tiker)
