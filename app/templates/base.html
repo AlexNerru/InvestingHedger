@@ -89,6 +89,11 @@
                                             style="width:auto;">LOGIN
                                     </button>
                                 </li>
+                                <li>
+                                    <button onclick="document.getElementById('id03').style.display='block'"
+                                            style="width:auto;">REGISTER
+                                    </button>
+                                </li>
 
                             {% endif %}
                         </ul>
@@ -200,11 +205,15 @@
     <script>
         // Get the modal
         var modal2 = document.getElementById('id02');
+        var modal1 = document.getElementById('id01');
+        var modal3 = document.getElementById('id03');
 
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
-            if (event.target === modal2) {
-                modal.style.display = "none";
+            if (event.target === modal2 || event.target === modal1 || event.target === modal3) {
+                modal1.style.display = "none";
+                modal2.style.display = "none";
+                modal3.style.display = "none";
             }
         }
     </script>

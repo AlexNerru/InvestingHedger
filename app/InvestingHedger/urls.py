@@ -7,7 +7,7 @@ from django.conf import settings
 from users.api import UserDetails, UserRegister
 from portfolios.api import PortfolioList, PortfolioDetails
 
-from users.views import MainView, LoginView, LogoutView
+from users.views import MainView, LoginView, LogoutView, RegisterView
 from portfolios.views import Portfolios, PortfolioView, DeletePortfolio
 
 urlpatterns = [
@@ -15,6 +15,7 @@ urlpatterns = [
 
                   path('', MainView.as_view()),
                   path('login/', LoginView.as_view()),
+                  path('register/', RegisterView.as_view()),
                   path('logout/', LogoutView.as_view()),
                   path('portfolios/', Portfolios.as_view()),
                   path('portfolios/<int:pk>/', PortfolioView.as_view()),

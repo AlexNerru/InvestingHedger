@@ -104,7 +104,7 @@ class Portfolios(View):
             portfolio = Portfolio(name=request.POST['name'], user=request.user.profile, creation_date=date(2018,1,1))
             tikers = request.POST.getlist('tiker')
             amounts = request.POST.getlist('amount')
-            if len(tikers) == len(amounts):
+            if len(tikers) == len(amounts) and len(tikers) >= 2:
                 for tiker in tikers:
                     security_list.append(get_object_or_404(Security, tiker = tiker))
                 data = list(zip(security_list, amounts))
@@ -114,6 +114,10 @@ class Portfolios(View):
                     balance = Balance(portfolio = portfolio, security = security, amount=amount)
                     balances_list.append(balance)
                 Balance.objects.bulk_create(balances_list)
+                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                return render(request, 'portfolios_list.html', {'list': portfolio_list})
+            else:
                 portfolios = Portfolio.objects.filter(user=request.user.profile).all()
                 portfolio_list = get_portfolios_list(portfolios=portfolios)
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})

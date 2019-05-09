@@ -129,7 +129,8 @@ class Portfolio(models.Model):
                 while price is None:
                     date -= timedelta(days=1)
                     price = balance.security.price_set.filter(date=date).first()
-                price[balance.security.tiker] = price.close * balance.amount
+                initial_price += price.close * balance.amount
+                prices[balance.security.tiker] = price.close * balance.amount
         for key, value in prices.items():
             prices[key] = value/ initial_price
         shares_string = ''
