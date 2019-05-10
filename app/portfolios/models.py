@@ -116,6 +116,10 @@ class Portfolio(models.Model):
     def delete_href(self):
         return "/portfolios/" + str(self.id) + "/delete/"
 
+    @property
+    def optimize_href(self):
+        return "/portfolios/" + str(self.id) + "/optimize/"
+
     def get_shares(self):
         initial_price = 0
         prices = {}
@@ -148,7 +152,7 @@ class Portfolio(models.Model):
             result_string += column + " " + "{0:.2f}".format(weight[0]) + "\n"
         return result_string
 
-    def get_prices(self):
+    def get_portolio_prices(self):
         security_ids = ",".join([str(balance.security_id) for balance in self.balance_set.all()])
         query = "SELECT p.date, p.close, p.security_id, b.amount " \
                 "FROM portfolios_price p INNER JOIN portfolios_balance b ON portfolio_id = {} " \
@@ -237,12 +241,12 @@ class Portfolio(models.Model):
         return "{0:.5f}".format(slope)
 
     def get_sharp(self, prices):
-        tbill = quandl.get("FRED/TB3MS", start_date=self.creation_date, end_date=datetime.today())
-        rrf = tbill.iloc[-1, 0]
+        #tbill = quandl.get("FRED/TB3MS", start_date=self.creation_date, end_date=datetime.today())
+        #rrf = tbill.iloc[-1, 0]
         bar = prices['change'] * 252 * 100
-        ybar = bar.mean() - rrf
+        ybar = bar.mean()
         sy = bar.std()
-        sharpe = (ybar - rrf) / sy
+        sharpe = (ybar) / sy
         return "{0:.5f}".format(sharpe)
 
     def get_stocks_data(self):
@@ -308,7 +312,7 @@ class Portfolio(models.Model):
         # This recursion reduces outliers to keep plots pretty
         if sigma > 2:
             return self.random_portfolio(returns)
-        return mu, sigma - 1
+        return mu, sigma
 
     def get_random_portfolios(self, return_vec):
         n_portfolios = 500

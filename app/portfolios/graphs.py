@@ -18,7 +18,7 @@ class GraphCreator():
         div = opy.plot(figure, auto_open=False, output_type='div', include_plotlyjs=False)
         return div
 
-    def get_change_chart(self, data):
+    def get_returns_chart(self, data):
         x = data.index
         y = data['change']
         trace = go.Scatter(x=x, y=y, marker={'color': 'red', 'symbol': 104},
@@ -63,8 +63,8 @@ class GraphCreator():
         means = means.T[0]
         trace = go.Scatter(x=stds, y=means,
                            mode="markers", name='Portfolios')
-        trace1 = go.Scatter(x=[i-1 for i in risks], y=returns, mode='markers', name = 'Frontier')
-        layout = go.Layout(xaxis={'title': 'std'}, yaxis={'title': 'mean'})
+        trace1 = go.Scatter(x=risks, y=returns, mode='markers', name = 'Frontier')
+        layout = go.Layout(xaxis={'title': 'Volatility'}, yaxis={'title': 'Expected return'})
         figure = go.Figure(data=[trace, trace1], layout=layout)
         div = opy.plot(figure, auto_open=False, output_type='div')
         return div

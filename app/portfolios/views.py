@@ -6,8 +6,11 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.core.exceptions import PermissionDenied
 
+from guardian.shortcuts import assign_perm
+
 import logging
-from datetime import date
+import re
+from datetime import date, datetime
 
 from portfolios.models import Portfolio, Security, Balance
 from portfolios.graphs import GraphCreator
@@ -39,6 +42,7 @@ def get_portfolios_list(portfolios):
             counter += 1
     return portfolio_list
 
+
 class PortfolioView(View):
 
     def get(self, request, pk):
@@ -47,10 +51,11 @@ class PortfolioView(View):
         if request.user.has_perm('crud portfolio', portfolio):
             creator = GraphCreator()
 
-            data = portfolio.get_prices()
+            data = portfolio.get_portolio_prices()
 
+            # price change day to day
             volatile = portfolio.get_portfolio_returns(data)
-            returns_div = creator.get_change_chart(volatile)
+            returns_div = creator.get_returns_chart(volatile)
 
             stocks_data = portfolio.get_stocks_data()
             stocks_div = creator.get_stocks_graph(stocks_data)
@@ -61,7 +66,7 @@ class PortfolioView(View):
             stocks_volatile = portfolio.get_stocks_returns(stocks_data)
             stocks_volatile_div = creator.get_stocks_change_graph(stocks_volatile)
 
-            stocks_volatile*=100
+            stocks_volatile *= 100
 
             weights, returns, risks = portfolio.get_efficient_frontier(stocks_volatile)
 
@@ -83,9 +88,39 @@ class PortfolioView(View):
                            'stock_change': stocks_volatile_div,
                            'frontier': frontier,
                            'weights': weights_string,
-                           'alt_weights':alt_weights_string})
+                           'alt_weights': alt_weights_string})
         else:
             raise PermissionDenied
+
+
+class CreateOptimised(View):
+
+    def get(self, request, pk):
+        request_logger.debug(request)
+        portfolio = get_object_or_404(Portfolio, pk=pk)
+        if request.user.is_authenticated:
+            if request.user.has_perm('crud portfolio', portfolio):
+                data = portfolio.get_portolio_prices()
+                stocks_data = portfolio.get_stocks_data()
+                stocks_volatile = portfolio.get_stocks_returns(stocks_data)
+                stocks_volatile *= 100
+                weights, returns, risks = portfolio.get_efficient_frontier(stocks_volatile)
+                portfolio_opt = Portfolio(name=portfolio.name + " Optimized", user=request.user.profile,
+                                          creation_date=portfolio.creation_date)
+                portfolio_opt.save()
+                money = portfolio.get_alt_prices(stocks_data, weights, data['price'].iloc[0])[0]
+                amounts = [(weights[i][0] * money) / stocks_data.iloc[0][i] for i in range(len(weights))]
+                balances_list = []
+                for balance, amount in list(zip(portfolio.balance_set.all(), amounts)):
+                    balance = Balance(portfolio=portfolio_opt, security=balance.security, amount=amount)
+                    balances_list.append(balance)
+                Balance.objects.bulk_create(balances_list)
+                assign_perm('crud portfolio', request.user, portfolio_opt)
+                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                return render(request, 'portfolios_list.html', {'list': portfolio_list})
+        else:
+            return PermissionDenied
 
 
 class Portfolios(View):
@@ -95,28 +130,35 @@ class Portfolios(View):
         if request.user is not None:
             if request.user.is_authenticated:
                 portfolios = Portfolio.objects.filter(user=request.user.profile).all()
-                portfolio_list = get_portfolios_list(portfolios = portfolios)
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
 
     def post(self, request):
         security_list = []
         if request.user.is_authenticated:
-            portfolio = Portfolio(name=request.POST['name'], user=request.user.profile, creation_date=date(2018,1,1))
             tikers = request.POST.getlist('tiker')
             amounts = request.POST.getlist('amount')
-            if len(tikers) == len(amounts) and len(tikers) >= 2:
-                for tiker in tikers:
-                    security_list.append(get_object_or_404(Security, tiker = tiker))
-                data = list(zip(security_list, amounts))
-                portfolio.save()
-                balances_list = []
-                for security, amount in data:
-                    balance = Balance(portfolio = portfolio, security = security, amount=amount)
-                    balances_list.append(balance)
-                Balance.objects.bulk_create(balances_list)
-                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
-                portfolio_list = get_portfolios_list(portfolios=portfolios)
-                return render(request, 'portfolios_list.html', {'list': portfolio_list})
+            date = request.POST['date']
+            x = re.search("^(0[1-9]|1[0-9]|2[0-9]|3[0-1])(-)(0[1-9]|1[0-2])(-)20[0-9][0-9]$", date)
+            if x is not None:
+                date = datetime.strptime(x.group(), "%d-%m-%Y")
+                portfolio = Portfolio(name=request.POST['name'], user=request.user.profile,
+                                      creation_date=date)
+                if len(tikers) == len(amounts) and len(tikers) >= 2:
+                    for tiker in tikers:
+                        if tiker != "":
+                            security_list.append(get_object_or_404(Security, tiker=tiker.upper()))
+                    data = list(zip(security_list, amounts))
+                    portfolio.save()
+                    balances_list = []
+                    for security, amount in data:
+                        balance = Balance(portfolio=portfolio, security=security, amount=amount)
+                        balances_list.append(balance)
+                    Balance.objects.bulk_create(balances_list)
+                    assign_perm('crud portfolio', request.user, portfolio)
+                    portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                    portfolio_list = get_portfolios_list(portfolios=portfolios)
+                    return render(request, 'portfolios_list.html', {'list': portfolio_list})
             else:
                 portfolios = Portfolio.objects.filter(user=request.user.profile).all()
                 portfolio_list = get_portfolios_list(portfolios=portfolios)
@@ -124,11 +166,12 @@ class Portfolios(View):
         else:
             return PermissionDenied
 
+
 class DeletePortfolio(View):
 
     def get(self, request, pk):
         if request.user.is_authenticated:
-            portfolio = get_object_or_404(Portfolio, pk = pk)
+            portfolio = get_object_or_404(Portfolio, pk=pk)
             if request.user.has_perm('crud portfolio', portfolio):
                 portfolio.delete()
                 return redirect('/portfolios/')
@@ -136,5 +179,3 @@ class DeletePortfolio(View):
                 return PermissionDenied
         else:
             return PermissionDenied
-
-

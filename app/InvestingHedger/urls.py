@@ -8,7 +8,7 @@ from users.api import UserDetails, UserRegister
 from portfolios.api import PortfolioList, PortfolioDetails
 
 from users.views import MainView, LoginView, LogoutView, RegisterView
-from portfolios.views import Portfolios, PortfolioView, DeletePortfolio
+from portfolios.views import Portfolios, PortfolioView, DeletePortfolio, CreateOptimised
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -21,6 +21,7 @@ urlpatterns = [
                   path('portfolios/<int:pk>/', PortfolioView.as_view()),
                   path('portfolios/add/', Portfolios.as_view()),
                   path('portfolios/<int:pk>/delete/', DeletePortfolio.as_view()),
+                  path('portfolios/<int:pk>/optimize/', CreateOptimised.as_view()),
 
                   url(r'^api/v1/o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
                   path('api/v1/register/', UserRegister.as_view()),

@@ -89,160 +89,163 @@
                 <div class="col-md-12 animate-box">
                     <article>
                         <div class="text-right top-right">
-                            <i class="icon-pencil" style="margin-right: 2%"></i>
+                            <a href="{{ portfolio.optimize_href }}">
+                                <i class="icon-gears" style="margin-right: 2%"></i>
+                            </a>
                             <a href="{{ portfolio.delete_href }}">
-                            <i class="icon-cross"
-                               style="color: red;%"></i>
-                                </a>
+                                <i class="icon-cross"
+                                   style="color: red;%"></i>
+                            </a>
                         </div>
                         <a>
                             <h3>{{ portfolio.name }}</h3>
                         </a>
                     </article>
                 </div>
-            <div class="row">
-                <div class="col-md-4 text-center animate-box">
-                    <div class="services">
-                        <article>
-                            <a>
-                                <h3>Portfolio return</h3>
-                                <h2>{{ portfolio.get_profit_percent }}%</h2>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-                <div class="col-md-4 text-center animate-box">
-                    <div class="services">
-                        <article>
-                            <a>
-                                <h3>Portfolio beta</h3>
-                                <h2>{{ beta }}</h2>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-                <div class="col-md-4 text-center animate-box">
-                    <div class="services">
-                        <article>
-                            <a>
-                                <h3>Portfolio sharpe</h3>
-                                <h2>{{ sharpe }}</h2>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 text-center animate-box">
-                    <div class="services">
-                        <article>
-                            <a>
-                                <h3>Portfolio weights</h3>
-                                <h2>{{ weights }}</h2>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-                <div class="col-md-6 text-center animate-box">
-                    <div class="services">
-                        <article>
-                            <a>
-                                <h3>Suggested weights</h3>
-                                <h2>{{ alt_weights }}</h2>
-                            </a>
-                        </article>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 col-sm-12 col-xs-12 animate-box">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Markowitz Frontier</h2>
-                            <div class="clearfix"></div>
+                <div class="row">
+                    <div class="col-md-4 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a>
+                                    <h3>Portfolio return</h3>
+                                    <h2>{{ portfolio.get_profit_percent }}%</h2>
+                                </a>
+                            </article>
                         </div>
-                        <div class="x_content">
-
-                            {% if frontier %}
-                                <div>
-                                    {{ frontier|safe }}
-                                </div>
-                            {% endif %}
-
+                    </div>
+                    <div class="col-md-4 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a>
+                                    <h3>Portfolio beta</h3>
+                                    <h2>{{ beta }}</h2>
+                                </a>
+                            </article>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a>
+                                    <h3>Portfolio sharpe</h3>
+                                    <h2>{{ sharpe }}</h2>
+                                </a>
+                            </article>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Portfolio Price</h2>
-                            <div class="clearfix"></div>
+                <div class="row">
+                    <div class="col-md-6 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a>
+                                    <h3>Portfolio weights</h3>
+                                    <h2>{{ weights }}</h2>
+                                </a>
+                            </article>
                         </div>
-                        <div class="x_content">
-
-                            {% if graph %}
-                                <div>
-                                    {{ graph|safe }}
-                                </div>
-                            {% endif %}
-
+                    </div>
+                    <div class="col-md-6 text-center animate-box">
+                        <div class="services">
+                            <article>
+                                <a>
+                                    <h3>Suggested weights</h3>
+                                    <h2>{{ alt_weights }}</h2>
+                                </a>
+                            </article>
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12 col-xs-12 animate-box">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Markowitz Frontier</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
 
-                <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Portfolio Volatile</h2>
-                            <div class="clearfix"></div>
-                        </div>
-                        <div class="x_content">
+                                {% if frontier %}
+                                    <div>
+                                        {{ frontier|safe }}
+                                    </div>
+                                {% endif %}
 
-                            {% if change %}
-                                <div>
-                                    {{ change|safe }}
-                                </div>
-                            {% endif %}
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Stock Prices</h2>
-                            <div class="clearfix"></div>
-                        </div>
-                        <div class="x_content">
-
-                            {% if stocks %}
-                                <div>
-                                    {{ stocks|safe }}
-                                </div>
-                            {% endif %}
-
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Portfolio Price</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
 
-                <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Stocks Volatile</h2>
-                            <div class="clearfix"></div>
+                                {% if graph %}
+                                    <div>
+                                        {{ graph|safe }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
                         </div>
-                        <div class="x_content">
+                    </div>
 
-                            {% if stock_change %}
-                                <div>
-                                    {{ stock_change|safe }}
-                                </div>
-                            {% endif %}
+                    <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Portfolio Volatile</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
 
+                                {% if change %}
+                                    <div>
+                                        {{ change|safe }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Stock Prices</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                {% if stocks %}
+                                    <div>
+                                        {{ stocks|safe }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 col-xs-12 animate-box">
+                        <div class="x_panel">
+                            <div class="x_title">
+                                <h2>Stocks Volatile</h2>
+                                <div class="clearfix"></div>
+                            </div>
+                            <div class="x_content">
+
+                                {% if stock_change %}
+                                    <div>
+                                        {{ stock_change|safe }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
                         </div>
                     </div>
                 </div>
