@@ -7,10 +7,9 @@ from django.core.exceptions import PermissionDenied
 from users.forms import LoginForm, RegisterForm
 from django.contrib.auth import authenticate, logout, login
 from django.contrib.auth.models import User
+from django.contrib import messages
 
 import logging
-
-from portfolios.models import Portfolio, Security, Balance
 
 logger = logging.getLogger('django')
 request_logger = logging.getLogger('django.request')
@@ -31,12 +30,19 @@ class LoginView(View):
         if form.is_valid():
             user = authenticate(username = form.data['username'], password = form.data['password'])
             if user is not None:
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('/portfolios/')
             else:
                 form = LoginForm()
                 register = RegisterForm()
+                messages.add_message(request, messages.ERROR, 'Check your login and password')
                 return render(request, 'index.html', {'form': form, 'form_register': register})
+        else:
+            form = LoginForm()
+            register = RegisterForm()
+            messages.add_message(request, messages.ERROR, 'Check your form data')
+            return render(request, 'index.html', {'form': form, 'form_register': register})
+
 
 class RegisterView(View):
 
@@ -50,10 +56,16 @@ class RegisterView(View):
                 if user is not None:
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     return redirect('/portfolios/')
-                else:
-                    register = RegisterForm()
-                    form = LoginForm()
-                    return render(request, 'index.html', {'form': form, 'form_register': register})
+            else:
+                register = RegisterForm()
+                form = LoginForm()
+                messages.add_message(request, messages.ERROR, 'Passwords does not match')
+                return render(request, 'index.html', {'form': form, 'form_register': register})
+        else:
+            register = RegisterForm()
+            form = LoginForm()
+            messages.add_message(request, messages.ERROR, 'Check your form data')
+            return render(request, 'index.html', {'form': form, 'form_register': register})
 
 class LogoutView(View):
 

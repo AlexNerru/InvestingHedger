@@ -5,6 +5,7 @@ from guardian.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 
 from guardian.shortcuts import assign_perm
 
@@ -48,49 +49,56 @@ class PortfolioView(View):
     def get(self, request, pk):
         request_logger.debug(request)
         portfolio = get_object_or_404(Portfolio, pk=pk)
-        if request.user.has_perm('crud portfolio', portfolio):
-            creator = GraphCreator()
+        if request.user.is_authenticated:
+            if request.user.has_perm('crud portfolio', portfolio):
+                creator = GraphCreator()
 
-            data = portfolio.get_portolio_prices()
+                data = portfolio.get_portolio_prices()
 
-            # price change day to day
-            volatile = portfolio.get_portfolio_returns(data)
-            returns_div = creator.get_returns_chart(volatile)
+                # price change day to day
+                volatile = portfolio.get_portfolio_returns(data)
+                returns_div = creator.get_returns_chart(volatile)
 
-            stocks_data = portfolio.get_stocks_data()
-            stocks_div = creator.get_stocks_graph(stocks_data)
+                stocks_data = portfolio.get_stocks_data()
+                stocks_div = creator.get_stocks_graph(stocks_data)
 
-            beta = portfolio.get_beta(volatile)
-            sharpe = portfolio.get_sharp(volatile)
+                beta = portfolio.get_beta(volatile)
+                sharpe = portfolio.get_sharp(volatile)
 
-            stocks_volatile = portfolio.get_stocks_returns(stocks_data)
-            stocks_volatile_div = creator.get_stocks_change_graph(stocks_volatile)
+                stocks_volatile = portfolio.get_stocks_returns(stocks_data)
+                stocks_volatile_div = creator.get_stocks_change_graph(stocks_volatile)
 
-            stocks_volatile *= 100
+                stocks_volatile *= 100
 
-            weights, returns, risks = portfolio.get_efficient_frontier(stocks_volatile)
+                weights, returns, risks = portfolio.get_efficient_frontier(stocks_volatile)
 
-            alt_price = portfolio.get_alt_prices(stocks_data, weights, data['price'].iloc[0])
-            div = creator.get_price_chart(data, alt_price)
+                alt_price = portfolio.get_alt_prices(stocks_data, weights, data['price'].iloc[0])
+                div = creator.get_price_chart(data, alt_price)
 
-            returns_trans = stocks_volatile.to_numpy().T
-            means, stds = portfolio.get_random_portfolios(returns_trans)
+                returns_trans = stocks_volatile.to_numpy().T
+                means, stds = portfolio.get_random_portfolios(returns_trans)
 
-            frontier = creator.get_frontier_graph(stds, means, risks, returns)
+                frontier = creator.get_frontier_graph(stds, means, risks, returns)
 
-            weights_string = portfolio.get_shares()
-            alt_weights_string = portfolio.get_alt_shares_string(weights, stocks_data)
+                weights_string = portfolio.get_shares()
+                alt_weights_string = portfolio.get_alt_shares_string(weights, stocks_data)
 
-            return render(request, 'portfolio.html',
-                          {'graph': div, 'change': returns_div,
-                           'portfolio': portfolio, 'beta': beta,
-                           'sharpe': sharpe, 'stocks': stocks_div,
-                           'stock_change': stocks_volatile_div,
-                           'frontier': frontier,
-                           'weights': weights_string,
-                           'alt_weights': alt_weights_string})
+                return render(request, 'portfolio.html',
+                              {'graph': div, 'change': returns_div,
+                               'portfolio': portfolio, 'beta': beta,
+                               'sharpe': sharpe, 'stocks': stocks_div,
+                               'stock_change': stocks_volatile_div,
+                               'frontier': frontier,
+                               'weights': weights_string,
+                               'alt_weights': alt_weights_string})
+            else:
+                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                messages.add_message(request, messages.ERROR, 'You do not have access to this portfolio')
+                return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
-            raise PermissionDenied
+            messages.add_message(request, messages.ERROR, 'You are not authentificated')
+            return render(request, 'index.html')
 
 
 class CreateOptimised(View):
@@ -119,19 +127,27 @@ class CreateOptimised(View):
                 portfolios = Portfolio.objects.filter(user=request.user.profile).all()
                 portfolio_list = get_portfolios_list(portfolios=portfolios)
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
+            else:
+                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                messages.add_message(request, messages.ERROR, 'You do not have access to this portfolio')
+                return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
-            return PermissionDenied
+            messages.add_message(request, messages.ERROR, 'You are not authentificated')
+            return render(request, 'index.html')
 
 
 class Portfolios(View):
 
     def get(self, request):
         request_logger.debug(request)
-        if request.user is not None:
-            if request.user.is_authenticated:
-                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
-                portfolio_list = get_portfolios_list(portfolios=portfolios)
-                return render(request, 'portfolios_list.html', {'list': portfolio_list})
+        if request.user.is_authenticated:
+            portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+            portfolio_list = get_portfolios_list(portfolios=portfolios)
+            return render(request, 'portfolios_list.html', {'list': portfolio_list})
+        else:
+            messages.add_message(request, messages.ERROR, 'You are not authentificated')
+            return render(request, 'index.html')
 
     def post(self, request):
         security_list = []
@@ -159,12 +175,19 @@ class Portfolios(View):
                     portfolios = Portfolio.objects.filter(user=request.user.profile).all()
                     portfolio_list = get_portfolios_list(portfolios=portfolios)
                     return render(request, 'portfolios_list.html', {'list': portfolio_list})
+                else:
+                    portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                    portfolio_list = get_portfolios_list(portfolios=portfolios)
+                    messages.add_message(request, messages.ERROR, 'Each tiker do not have amount')
+                    return render(request, 'portfolios_list.html', {'list': portfolio_list})
             else:
                 portfolios = Portfolio.objects.filter(user=request.user.profile).all()
                 portfolio_list = get_portfolios_list(portfolios=portfolios)
+                messages.add_message(request, messages.ERROR, 'Date format is wrong')
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
-            return PermissionDenied
+            messages.add_message(request, messages.ERROR, 'You are not authentificated')
+            return render(request, 'index.html')
 
 
 class DeletePortfolio(View):
@@ -176,6 +199,10 @@ class DeletePortfolio(View):
                 portfolio.delete()
                 return redirect('/portfolios/')
             else:
-                return PermissionDenied
+                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                messages.add_message(request, messages.ERROR, 'You do not have access to this portfolio')
+                return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
-            return PermissionDenied
+            messages.add_message(request, messages.ERROR, 'You are not authentificated')
+            return render(request, 'index.html')
