@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from users.forms import LoginForm, RegisterForm
 
 from guardian.shortcuts import assign_perm
 
@@ -133,8 +134,10 @@ class CreateOptimised(View):
                 messages.add_message(request, messages.ERROR, 'You do not have access to this portfolio')
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
+            form = LoginForm()
+            register = RegisterForm()
             messages.add_message(request, messages.ERROR, 'You are not authentificated')
-            return render(request, 'index.html')
+            return render(request, 'index.html', {'form': form, 'form_register': register})
 
 
 class Portfolios(View):
@@ -186,8 +189,10 @@ class Portfolios(View):
                 messages.add_message(request, messages.ERROR, 'Date format is wrong')
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
+            form = LoginForm()
+            register = RegisterForm()
             messages.add_message(request, messages.ERROR, 'You are not authentificated')
-            return render(request, 'index.html')
+            return render(request, 'index.html', {'form': form, 'form_register': register})
 
 
 class DeletePortfolio(View):
@@ -204,5 +209,7 @@ class DeletePortfolio(View):
                 messages.add_message(request, messages.ERROR, 'You do not have access to this portfolio')
                 return render(request, 'portfolios_list.html', {'list': portfolio_list})
         else:
+            form = LoginForm()
+            register = RegisterForm()
             messages.add_message(request, messages.ERROR, 'You are not authentificated')
-            return render(request, 'index.html')
+            return render(request, 'index.html', {'form': form, 'form_register': register})

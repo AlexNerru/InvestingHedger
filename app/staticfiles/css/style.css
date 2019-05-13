@@ -198,10 +198,10 @@ h1, h2, h3, h4, h5, h6, figure {
         color: #fff;
         background: #4aca85;
         padding: 10px 15px;
-        -webkit-border-radius: 100px;
+        /*-webkit-border-radius: 100px;
         -moz-border-radius: 100px;
         -ms-border-radius: 100px;
-        border-radius: 100px;
+        border-radius: 100px;*/
         -webkit-transition: 0.3s;
         -o-transition: 0.3s;
         transition: 0.3s; }
@@ -1335,10 +1335,10 @@ input[type="text"] {
   margin-bottom: 4px;
   font-size: 14px;
   font-weight: 400;
-  -webkit-border-radius: 30px;
+  /*-webkit-border-radius: 30px;
   -moz-border-radius: 30px;
   -ms-border-radius: 30px;
-  border-radius: 30px;
+  border-radius: 30px;*/
   -webkit-transition: 0.5s;
   -o-transition: 0.5s;
   transition: 0.5s;
@@ -1484,4 +1484,19 @@ input[type="text"] {
   background: url(../images/loader.gif) center no-repeat #fff; }
 
 .js .animate-box {
-  opacity: 0; }
+  opacity: 0;
+}
+
+/* hide scrollbar */
+.modal {
+  overflow-y: auto;
+  overflow: -moz-scrollbars-none;
+  -ms-overflow-style: none;
+}
+.modal::-webkit-scrollbar { width: 0 !important }
+
+
+/* fit modal form controls */
+.modal-content > .container {
+  width: 80%;
+}

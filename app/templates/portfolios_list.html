@@ -69,53 +69,52 @@
     <div id="id02" class="modal">
         <form class="modal-content animate" action="/portfolios/add/" method="post">
             {% csrf_token %}
-            <div class="row">
-                <div class="col-md-12 pre-scrollable" >
-                    <div style="padding-top: 1%; padding-left: 2%">
-                        <h2>
-                            Input your portfolio tikers and their amount
-                        </h2>
-                    </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="field-name">Portfolio name</label>
-                        <input type="text" class="form-control" id="field-name"
-                               placeholder="Name" name="name" style="margin-left: 5%; width: 40%;">
-                    </div>
-                    <div data-role="dynamic-fields">
-                        <div class="form-inline" style="padding-left: 5%; margin-right: 3%">
-                            <div class="form-group">
-                                <label class="sr-only" for="field-name">Tiker</label>
-                                <input type="text" class="form-control" id="field-name"
-                                       placeholder="Tiker" name="tiker" style="width: 150%">
-                            </div>
-                            <div class="form-group">
-                                <label class="sr-only" for="field-value">Amount</label>
-                                <input type="text" class="form-control" id="field-value" placeholder="Amount"
-                                       name="amount" style="width: 150%; margin-left: 55%">
-                            </div>
-                            <div class="form-group" style="margin-left: 45%;">
-                                <button class="btn btn-danger" data-role="remove">
-                                    <span>Remove</span>
-                                </button>
-                                <button class="btn btn-primary" data-role="add">
-                                    <span>Add</span>
-                                </button>
-                            </div>
+            <div>
+                <div style="padding-top: 1%; padding-left: 2%">
+                    <h2>
+                        Input your portfolio tikers and their amount
+                    </h2>
+                </div>
+                <div class="form-group">
+                    <label class="sr-only" for="field-name">Portfolio name</label>
+                    <input type="text" class="form-control" id="field-name"
+                           placeholder="Name" name="name" style="margin-left: 5%; width: 40%;">
+                </div>
+                <div data-role="dynamic-fields">
+                    <div class="form-inline" style="margin-left: 5%; margin-right: 3%">
+                        <div class="form-group col-md-4" style="padding: 0px;">
+                            <label class="sr-only" for="field-name">Tiker</label>
+                            <input type="text" class="form-control" id="field-name" style="width: 100%"
+                                   placeholder="Tiker" name="tiker">
                         </div>
+                        <div class="form-group col-md-4"  style="padding: 0px;">
+                            <label class="sr-only" for="field-value">Amount</label>
+                            <input type="text" class="form-control" id="field-value" style="width: 100%" placeholder="Amount"
+                                   name="amount"    >
+                        </div>
+                        <div class="form-group col-md-2" style="padding-top: 8px; float: right">
+                            <button class="btn btn-danger cancelbtn form-control"  data-role="remove">
+                                <span>Remove</span>
+                            </button>
+                            <button class="btn btn-primary  form-control" data-role="add">
+                                <span>Add</span>
+                            </button>
+                        </div>
+                        <br/><br/><br/>
                     </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="field-name">Creation date</label>
-                        <input type="text" class="form-control" id="field-name"
-                               placeholder="Creation date" name="date" style="margin-left: 5%; width: 40%;">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                    <button type="submit" style="margin-top: 3%">Create</button>
-                            </div>
-                        <div class="col-md-6">
-                    <button type="button" style="margin-top: 3%; background-color: red" onclick="document.getElementById('id02').style.display='none'">Cancel</button>
-                            </div>
-                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="sr-only" for="field-name">Creation date</label>
+                    <input type="text" class="form-control" id="field-name"
+                           placeholder="Creation date" name="date" style="margin-left: 5%; width: 40%;">
+                </div>
+                <div class="row" style="margin: 0px;">
+                    <button type="submit" class="col-md-5 btn-success" style="margin-top: 3%">Create</button>
+                    <div class="col-md-2"></div>
+                    <button type="button" class="col-md-5 btn-danger cancelbtn"
+                            style="margin-top: 3%; background-color: red"
+                            onclick="document.getElementById('id02').style.display='none'">Cancel
+                    </button>
                 </div>
             </div>
         </form>

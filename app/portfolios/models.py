@@ -288,6 +288,7 @@ class Portfolio(models.Model):
         ## CALCULATE RISKS AND RETURNS FOR FRONTIER
         returns = [blas.dot(pbar, x) for x in portfolios]
         risks = [np.sqrt(blas.dot(x, S * x)) for x in portfolios]
+
         ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
         m1 = np.polyfit(returns, risks, 2)
         x1 = np.sqrt(m1[2] / m1[0])

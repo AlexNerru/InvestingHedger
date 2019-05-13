@@ -14,13 +14,15 @@ import logging
 logger = logging.getLogger('django')
 request_logger = logging.getLogger('django.request')
 
+
 class MainView(View):
     template_name = 'index.html'
 
     def get(self, request):
         form = LoginForm()
         register = RegisterForm()
-        return render(request, self.template_name, {'form':form, 'form_register': register})
+        return render(request, self.template_name, {'form': form, 'form_register': register})
+
 
 class LoginView(View):
 
@@ -28,7 +30,7 @@ class LoginView(View):
         request_logger.debug(request)
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = authenticate(username = form.data['username'], password = form.data['password'])
+            user = authenticate(username=form.data['username'], password=form.data['password'])
             if user is not None:
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('/portfolios/')
@@ -51,11 +53,18 @@ class RegisterView(View):
         form = RegisterForm(request.POST)
         if form.is_valid():
             if form.data['password'] == form.data['password2']:
-                user = User.objects.create_user(username = form.data['username'], password = form.data['password'])
-                user.save()
-                if user is not None:
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    return redirect('/portfolios/')
+                us = User.objects.filter(username=form.data['username']).first()
+                if us is None:
+                    user = User.objects.create_user(username=form.data['username'], password=form.data['password'])
+                    user.save()
+                    if user is not None:
+                        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                        return redirect('/portfolios/')
+                else:
+                    register = RegisterForm()
+                    form = LoginForm()
+                    messages.add_message(request, messages.ERROR, 'User with this username already exists')
+                    return render(request, 'index.html', {'form': form, 'form_register': register})
             else:
                 register = RegisterForm()
                 form = LoginForm()
@@ -67,6 +76,7 @@ class RegisterView(View):
             messages.add_message(request, messages.ERROR, 'Check your form data')
             return render(request, 'index.html', {'form': form, 'form_register': register})
 
+
 class LogoutView(View):
 
     def get(self, request):
@@ -75,4 +85,3 @@ class LogoutView(View):
         form = LoginForm()
         register = RegisterForm()
         return redirect('/', {'form': form, 'form_register': register})
-
