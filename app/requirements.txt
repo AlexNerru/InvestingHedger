@@ -1,0 +1,17 @@
+django
+gunicorn
+django-rest-framework
+django-guardian
+django-oauth-toolkit
+django-cors-middleware
+oauth2-provider
+yahoo-fin
+numpy
+psycopg2-binary
+scipy
+pandas==0.24.0
+requests-html
+sqlalchemy
+plotly
+quandl
+cvxopt

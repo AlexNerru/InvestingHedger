@@ -26,7 +26,7 @@ SECRET_KEY = "sgsdfgdf"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -192,7 +192,7 @@ USE_TZ = True
 STATICFILES_DIRS = ( os.path.join('staticfiles'), )
 
 STATIC_URL = '/staticfiles/'
-STATIC_ROOT = ''
+STATIC_ROOT = '/staticfiles/'
 
 MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')

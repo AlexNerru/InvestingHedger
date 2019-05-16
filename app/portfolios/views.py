@@ -166,7 +166,15 @@ class Portfolios(View):
                 if len(tikers) == len(amounts) and len(tikers) >= 2:
                     for tiker in tikers:
                         if tiker != "":
-                            security_list.append(get_object_or_404(Security, tiker=tiker.upper()))
+                            security = Security.objects.filter(tiker=tiker.upper()).first()
+                            if security is not None:
+                                security_list.append(security)
+                            else:
+                                portfolios = Portfolio.objects.filter(user=request.user.profile).all()
+                                portfolio_list = get_portfolios_list(portfolios=portfolios)
+                                messages.add_message(request, messages.ERROR, tiker.upper() + ' does not exists in '
+                                                                                              'the database')
+                                return render(request, 'portfolios_list.html', {'list': portfolio_list})
                     data = list(zip(security_list, amounts))
                     portfolio.save()
                     balances_list = []
